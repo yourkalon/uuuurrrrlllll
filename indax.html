@@ -1,429 +1,421 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart URL Shortener</title>
-  <style>
-    :root {
-      --primary: #0066ff;
-      --primary-dark: #0052cc;
-      --secondary: #6c757d;
-      --success: #28a745;
-      --warning: #ffc107;
-      --danger: #dc3545;
-      --light: #f8f9fa;
-      --dark: #343a40;
-      --border-radius: 8px;
-      --box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      color: var(--dark);
-      line-height: 1.6;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-      padding: 20px;
-    }
-    
-    h1 {
-      color: var(--primary);
-      margin-bottom: 10px;
-      font-size: 2.5rem;
-    }
-    
-    .subtitle {
-      color: var(--secondary);
-      font-size: 1.2rem;
-    }
-    
-    .nav-tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 30px;
-      border-bottom: 1px solid #dee2e6;
-    }
-    
-    .tab-btn {
-      background: none;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      color: var(--secondary);
-      border-bottom: 3px solid transparent;
-      transition: all 0.3s;
-    }
-    
-    .tab-btn.active {
-      color: var(--primary);
-      border-bottom: 3px solid var(--primary);
-    }
-    
-    .tab-content {
-      display: none;
-    }
-    
-    .tab-content.active {
-      display: block;
-    }
-    
-    .card {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      padding: 30px;
-      margin-bottom: 30px;
-    }
-    
-    .shortener-form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .form-row {
-      display: flex;
-      gap: 15px;
-    }
-    
-    .form-row .form-group {
-      flex: 1;
-    }
-    
-    label {
-      font-weight: 600;
-      color: var(--dark);
-    }
-    
-    input, select {
-      padding: 12px 15px;
-      border-radius: var(--border-radius);
-      border: 1px solid #ced4da;
-      font-size: 16px;
-      transition: border-color 0.3s;
-    }
-    
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
-    }
-    
-    button {
-      padding: 12px 20px;
-      border: none;
-      background: var(--primary);
-      color: white;
-      border-radius: var(--border-radius);
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      transition: background 0.3s;
-    }
-    
-    button:hover {
-      background: var(--primary-dark);
-    }
-    
-    button.secondary {
-      background: var(--secondary);
-    }
-    
-    button.secondary:hover {
-      background: #5a6268;
-    }
-    
-    .result {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: var(--border-radius);
-      background-color: #e8f4ff;
-      border-left: 4px solid var(--primary);
-    }
-    
-    .result a {
-      color: var(--primary);
-      word-break: break-all;
-      text-decoration: none;
-    }
-    
-    .result a:hover {
-      text-decoration: underline;
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    
-    th, td {
-      padding: 12px 15px;
-      border: 1px solid #dee2e6;
-      text-align: left;
-    }
-    
-    th {
-      background-color: var(--primary);
-      color: white;
-      font-weight: 600;
-    }
-    
-    tr:nth-child(even) {
-      background-color: #f8f9fa;
-    }
-    
-    .stats-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    
-    .stat-card {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      padding: 20px;
-      text-align: center;
-    }
-    
-    .stat-value {
-      font-size: 2rem;
-      font-weight: bold;
-      color: var(--primary);
-      margin: 10px 0;
-    }
-    
-    .stat-label {
-      color: var(--secondary);
-      font-size: 0.9rem;
-    }
-    
-    .filter-section {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      align-items: flex-end;
-    }
-    
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .date-range {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: var(--secondary);
-    }
-    
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: var(--secondary);
-    }
-    
-    .empty-state img {
-      max-width: 200px;
-      margin-bottom: 20px;
-      opacity: 0.5;
-    }
-    
-    footer {
-      text-align: center;
-      margin-top: 50px;
-      padding: 20px;
-      color: var(--secondary);
-      font-size: 0.9rem;
-    }
-    
-    .custom-toggle {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 24px;
-    }
-    
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 24px;
-    }
-    
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 16px;
-      width: 16px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-    
-    input:checked + .slider {
-      background-color: var(--primary);
-    }
-    
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
-    
-    .chart-container {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      padding: 20px;
-      margin-bottom: 30px;
-      height: 300px;
-    }
-    
-    @media (max-width: 768px) {
-      .nav-tabs {
-        flex-direction: column;
-        align-items: center;
-      }
-      
-      .tab-btn {
-        width: 100%;
-        max-width: 300px;
-        margin-bottom: 5px;
-      }
-      
-      .stats-cards {
-        grid-template-columns: 1fr;
-      }
-      
-      .form-row {
-        flex-direction: column;
-      }
-      
-      .filter-section {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .date-range {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professional URL Shortener</title>
+<!-- Chart.js for analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --primary: #3498db;
+  --primary-dark: #2980b9;
+  --secondary: #2ecc71;
+  --secondary-dark: #27ae60;
+  --danger: #e74c3c;
+  --warning: #f39c12;
+  --dark: #2c3e50;
+  --light: #ecf0f1;
+  --gray: #95a5a6;
+  --light-gray: #bdc3c7;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #333;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+header {
+  background: var(--dark);
+  color: white;
+  padding: 25px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+header p {
+  color: var(--light);
+  font-size: 1.1rem;
+}
+
+.content {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 600px;
+}
+
+.section {
+  flex: 1;
+  min-width: 300px;
+  padding: 30px;
+}
+
+.section-title {
+  font-size: 1.8rem;
+  color: var(--dark);
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--light);
+  display: flex;
+  align-items: center;
+}
+
+.section-title i {
+  margin-right: 10px;
+  color: var(--primary);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+input, select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--light-gray);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.btn {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary {
+  background: var(--secondary);
+}
+
+.btn-secondary:hover {
+  background: var(--secondary-dark);
+}
+
+.btn-danger {
+  background: var(--danger);
+}
+
+.result-box {
+  margin-top: 25px;
+  padding: 20px;
+  background: var(--light);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+}
+
+.result-box h3 {
+  margin-bottom: 10px;
+  color: var(--dark);
+}
+
+.result-url {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.result-url a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-all;
+  flex: 1;
+}
+
+.result-url a:hover {
+  text-decoration: underline;
+}
+
+.copy-btn {
+  margin-left: 10px;
+  background: var(--gray);
+  padding: 8px 15px;
+  font-size: 14px;
+}
+
+.analytics-controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.analytics-controls select, .analytics-controls input {
+  flex: 1;
+  min-width: 150px;
+}
+
+.date-range {
+  display: flex;
+  gap: 10px;
+}
+
+.date-range input {
+  min-width: 140px;
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border-top: 4px solid var(--primary);
+}
+
+.stat-card:nth-child(2) {
+  border-top-color: var(--secondary);
+}
+
+.stat-card:nth-child(3) {
+  border-top-color: var(--warning);
+}
+
+.stat-card:nth-child(4) {
+  border-top-color: var(--danger);
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin: 10px 0;
+}
+
+.stat-label {
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
+.chart-container {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  height: 300px;
+}
+
+.links-table-container {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--light);
+}
+
+th {
+  background: var(--light);
+  font-weight: 600;
+  color: var(--dark);
+}
+
+tr:hover {
+  background: rgba(52, 152, 219, 0.05);
+}
+
+.url-cell {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.url-cell a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.url-cell a:hover {
+  text-decoration: underline;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--gray);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  color: var(--light-gray);
+}
+
+.divider {
+  width: 1px;
+  background: var(--light);
+  margin: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+  }
+  
+  .divider {
+    width: 100%;
+    height: 1px;
+    margin: 0;
+  }
+  
+  .analytics-controls {
+    flex-direction: column;
+  }
+  
+  .date-range {
+    flex-direction: column;
+  }
+  
+  .stats-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .section {
+    padding: 20px;
+  }
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🔗 Smart URL Shortener</h1>
-      <p class="subtitle">Shorten your URLs with custom links and track their performance</p>
-    </header>
-    
-    <div class="nav-tabs">
-      <button class="tab-btn active" data-tab="shortener">URL Shortener</button>
-      <button class="tab-btn" data-tab="analytics">Analytics Dashboard</button>
-    </div>
-    
-    <div class="tab-content active" id="shortener">
-      <div class="card">
-        <h2>Shorten Your URL</h2>
-        <p>Enter a long URL to create a short, shareable link</p>
-        
-        <div class="shortener-form">
-          <div class="form-group">
-            <label for="longUrl">Long URL</label>
-            <input type="text" id="longUrl" placeholder="Enter your long URL..." />
-          </div>
-          
-          <div class="custom-toggle">
-            <span>Customize Short Link</span>
-            <label class="switch">
-              <input type="checkbox" id="customToggle">
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div id="customSection" style="display: none;">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="customDomain">Domain (Optional)</label>
-                <input type="text" id="customDomain" placeholder="yourdomain.com" />
-              </div>
-              <div class="form-group">
-                <label for="customCode">Custom Code</label>
-                <input type="text" id="customCode" placeholder="my-link" />
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="linkTitle">Link Title (Optional)</label>
-              <input type="text" id="linkTitle" placeholder="My Awesome Link" />
-            </div>
-          </div>
-          
-          <button id="shortenBtn">Shorten URL</button>
+<div class="container">
+  <header>
+    <h1>🔗 Professional URL Shortener</h1>
+    <p>Create short links, track clicks, and analyze traffic</p>
+  </header>
+  
+  <div class="content">
+    <!-- URL Shortener Section -->
+    <div class="section">
+      <h2 class="section-title">URL Shortener</h2>
+      
+      <div class="form-group">
+        <label for="longUrl">Destination URL</label>
+        <input type="text" id="longUrl" placeholder="https://example.com/very-long-url">
+      </div>
+      
+      <div class="form-group">
+        <label for="customCode">Custom Short Code (Optional)</label>
+        <input type="text" id="customCode" placeholder="my-custom-link">
+      </div>
+      
+      <div class="form-group">
+        <label for="linkTitle">Link Title (Optional)</label>
+        <input type="text" id="linkTitle" placeholder="My Awesome Link">
+      </div>
+      
+      <button id="shortenBtn" class="btn">Shorten URL</button>
+      
+      <div id="resultBox" class="result-box" style="display: none;">
+        <h3>✅ Your Short URL is Ready!</h3>
+        <div class="result-url">
+          <a id="shortUrl" href="#" target="_blank"></a>
+          <button class="btn copy-btn" id="copyBtn">Copy</button>
         </div>
-        
-        <div class="result" id="result"></div>
       </div>
     </div>
     
-    <div class="tab-content" id="analytics">
+    <div class="divider"></div>
+    
+    <!-- Analytics Section -->
+    <div class="section">
+      <h2 class="section-title">Analytics Dashboard</h2>
+      
+      <div class="analytics-controls">
+        <select id="timeFilter">
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="all">All Time</option>
+          <option value="custom">Custom Range</option>
+        </select>
+        
+        <div id="customDateRange" class="date-range" style="display: none;">
+          <input type="date" id="startDate">
+          <input type="date" id="endDate">
+          <button id="applyDateRange" class="btn btn-secondary">Apply</button>
+        </div>
+        
+        <button id="refreshAnalytics" class="btn btn-secondary">Refresh</button>
+      </div>
+      
       <div class="stats-cards">
         <div class="stat-card">
-          <div class="stat-label">Total Short URLs</div>
+          <div class="stat-label">Total URLs</div>
           <div class="stat-value" id="totalUrls">0</div>
         </div>
         <div class="stat-card">
@@ -440,572 +432,473 @@
         </div>
       </div>
       
-      <div class="card">
-        <h2>URL Analytics</h2>
-        <p>Track performance of your shortened URLs</p>
-        
-        <div class="filter-section">
-          <div class="filter-group">
-            <label for="timeFilter">Time Period</label>
-            <select id="timeFilter">
-              <option value="all">All Time</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="custom">Custom Range</option>
-            </select>
-          </div>
-          
-          <div id="customDateRange" style="display: none;">
-            <div class="date-range">
-              <div class="filter-group">
-                <label for="startDate">Start Date</label>
-                <input type="date" id="startDate" />
-              </div>
-              <div class="filter-group">
-                <label for="endDate">End Date</label>
-                <input type="date" id="endDate" />
-              </div>
-              <button id="applyDateRange" class="secondary">Apply</button>
-            </div>
-          </div>
-          
-          <button id="refreshAnalytics" class="secondary">Refresh Data</button>
-        </div>
-        
-        <div class="chart-container">
-          <canvas id="visitsChart"></canvas>
-        </div>
-        
-        <div class="loading" id="loadingAnalytics">Loading analytics data...</div>
-        <div class="empty-state" id="emptyAnalytics" style="display: none;">
-          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMyIDU2QzQ0LjE1MDMgNTYgNTQgNDYuMTUwMyA1NCAzNEM1NCAyMS44NDk3IDQ0LjE1MDMgMTIgMzIgMTJDMTkuODQ5NyAxMiAxMCAyMS44NDk3IDEwIDM0QzEwIDQ2LjE1MDMgMTkuODQ5NyA1NiAzMiA1NloiIGZpbGw9IiNEN0UxRUIiLz4KPHBhdGggZD0iTTM0IDI2SDMwVjM4SDM0VjI2WiIgZmlsbD0iIzk2QTZCMyIvPgo8cGF0aCBkPSJNMzIgNDJDMzMuMTA0NiA0MiAzNCA0MS4xMDQ2IDM0IDQwQzM0IDM4Ljg5NTQgMzMuMTA0NiAzOCAzMiAzOEMzMC44OTU0IDM4IDMwIDM4Ljg5NTQgMzAgNDBDMzAgNDEuMTA0NiAzMC44OTU0IDQyIDMyIDQyWiIgZmlsbD0iIzk2QTZCMyIvPgo8L3N2Zz4K" alt="No data">
-          <h3>No URLs Created Yet</h3>
-          <p>Create your first shortened URL to see analytics here</p>
-        </div>
-        
-        <table id="analyticsTable" style="display: none;">
+      <div class="chart-container">
+        <canvas id="trafficChart"></canvas>
+      </div>
+      
+      <div class="links-table-container">
+        <table id="linksTable">
           <thead>
             <tr>
               <th>Short Code</th>
-              <th>Long URL</th>
               <th>Title</th>
-              <th>Total Visits</th>
-              <th>Unique Visitors</th>
+              <th>Long URL</th>
+              <th>Visits</th>
               <th>Last Visit</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody id="linksTableBody">
+            <!-- Table rows will be added here dynamically -->
+          </tbody>
         </table>
+        <div id="emptyTable" class="empty-state">
+          <div>📊</div>
+          <h3>No URLs Created Yet</h3>
+          <p>Create your first shortened URL to see analytics here</p>
+        </div>
       </div>
     </div>
-    
-    <footer>
-      <p>Smart URL Shortener &copy; 2023 | All rights reserved</p>
-    </footer>
   </div>
+</div>
 
-  <script>
-    const FIREBASE_URL = "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app/";
-    let visitsChart = null;
-    
-    // Tab switching functionality
-    document.querySelectorAll('.tab-btn').forEach(button => {
-      button.addEventListener('click', () => {
-        // Remove active class from all tabs and contents
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
-        // Add active class to clicked tab and corresponding content
-        button.classList.add('active');
-        document.getElementById(button.dataset.tab).classList.add('active');
-        
-        // If analytics tab is clicked, load analytics data
-        if (button.dataset.tab === 'analytics') {
-          loadAnalytics();
-        }
-      });
-    });
-    
-    // Toggle custom URL section
-    document.getElementById('customToggle').addEventListener('change', function() {
-      document.getElementById('customSection').style.display = this.checked ? 'block' : 'none';
-    });
-    
-    // Time filter change handler
-    document.getElementById('timeFilter').addEventListener('change', function() {
-      const customRange = document.getElementById('customDateRange');
-      customRange.style.display = this.value === 'custom' ? 'block' : 'none';
-      
-      if (this.value !== 'custom') {
-        loadAnalytics();
+<script>
+// Firebase config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "urlshortener-d1814",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// DOM elements
+const longUrlInput = document.getElementById('longUrl');
+const customCodeInput = document.getElementById('customCode');
+const linkTitleInput = document.getElementById('linkTitle');
+const shortenBtn = document.getElementById('shortenBtn');
+const resultBox = document.getElementById('resultBox');
+const shortUrlLink = document.getElementById('shortUrl');
+const copyBtn = document.getElementById('copyBtn');
+const timeFilter = document.getElementById('timeFilter');
+const customDateRange = document.getElementById('customDateRange');
+const startDateInput = document.getElementById('startDate');
+const endDateInput = document.getElementById('endDate');
+const applyDateRangeBtn = document.getElementById('applyDateRange');
+const refreshAnalyticsBtn = document.getElementById('refreshAnalytics');
+const linksTableBody = document.getElementById('linksTableBody');
+const emptyTable = document.getElementById('emptyTable');
+const totalUrlsElement = document.getElementById('totalUrls');
+const totalVisitsElement = document.getElementById('totalVisits');
+const mostVisitedElement = document.getElementById('mostVisited');
+const uniqueVisitorsElement = document.getElementById('uniqueVisitors');
+
+// Chart.js instance
+let trafficChart = null;
+
+// Initialize the app
+document.addEventListener('DOMContentLoaded', function() {
+  // Set default dates for custom range
+  const today = new Date();
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(today.getDate() - 7);
+  
+  startDateInput.valueAsDate = oneWeekAgo;
+  endDateInput.valueAsDate = today;
+  
+  // Event listeners
+  shortenBtn.addEventListener('click', shortenUrl);
+  copyBtn.addEventListener('click', copyShortUrl);
+  timeFilter.addEventListener('change', handleTimeFilterChange);
+  applyDateRangeBtn.addEventListener('click', loadAnalytics);
+  refreshAnalyticsBtn.addEventListener('click', loadAnalytics);
+  
+  // Check for redirect
+  checkForRedirect();
+  
+  // Load initial analytics
+  loadAnalytics();
+});
+
+// Generate random ID
+function generateID(length = 5) {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  return Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+// Shorten URL function
+async function shortenUrl() {
+  const longUrl = longUrlInput.value.trim();
+  const customCode = customCodeInput.value.trim();
+  const linkTitle = linkTitleInput.value.trim();
+  
+  if (!longUrl) {
+    alert("Please enter a valid URL");
+    return;
+  }
+  
+  // Validate URL format
+  try {
+    new URL(longUrl);
+  } catch (e) {
+    alert("Please enter a valid URL format");
+    return;
+  }
+  
+  const code = customCode || generateID();
+  
+  // Check if custom code is already in use
+  if (customCode) {
+    try {
+      const snapshot = await db.ref('links/' + code).once('value');
+      if (snapshot.exists()) {
+        alert("This custom code is already taken. Please choose a different one.");
+        return;
       }
-    });
-    
-    // Apply custom date range
-    document.getElementById('applyDateRange').addEventListener('click', loadAnalytics);
-    
-    // Refresh analytics data
-    document.getElementById('refreshAnalytics').addEventListener('click', loadAnalytics);
-    
-    // Random short ID generation
-    function generateID(length = 5) {
-      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      return Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    } catch (error) {
+      console.error("Error checking custom code:", error);
+      alert("An error occurred while checking custom code availability");
+      return;
     }
+  }
+  
+  // Save to Firebase
+  try {
+    await db.ref('links/' + code).set({ 
+      longUrl, 
+      title: linkTitle || null,
+      createdAt: new Date().toISOString(),
+      visits: 0
+    });
     
-    // URL Shortening function
-    async function shortenUrl() {
-      const longUrl = document.getElementById("longUrl").value.trim();
-      const resultDiv = document.getElementById("result");
-      const useCustom = document.getElementById("customToggle").checked;
-      const customDomain = document.getElementById("customDomain").value.trim();
-      const customCode = document.getElementById("customCode").value.trim();
-      const linkTitle = document.getElementById("linkTitle").value.trim();
-      
-      if (!longUrl) {
-        resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ Please enter a valid URL!</div>';
-        return;
-      }
-      
-      // Validate URL format
-      try {
-        new URL(longUrl);
-      } catch (e) {
-        resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ Please enter a valid URL format!</div>';
-        return;
-      }
-      
-      let shortCode;
-      
-      // Check if using custom code
-      if (useCustom && customCode) {
-        // Validate custom code (alphanumeric and hyphens only)
-        if (!/^[a-zA-Z0-9-]+$/.test(customCode)) {
-          resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ Custom code can only contain letters, numbers, and hyphens!</div>';
-          return;
-        }
-        
-        // Check if custom code is already taken
-        try {
-          const checkResponse = await fetch(`${FIREBASE_URL}/links/${customCode}.json`);
-          const existingData = await checkResponse.json();
-          
-          if (existingData) {
-            resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ This custom code is already taken. Please choose a different one.</div>';
-            return;
-          }
-        } catch (error) {
-          console.error("Error checking custom code:", error);
-          resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ An error occurred while checking custom code availability.</div>';
-          return;
-        }
-        
-        shortCode = customCode;
+    // Show result
+    const shortUrl = `${window.location.origin}?c=${code}`;
+    shortUrlLink.textContent = shortUrl;
+    shortUrlLink.href = shortUrl;
+    resultBox.style.display = 'block';
+    
+    // Clear inputs
+    longUrlInput.value = '';
+    customCodeInput.value = '';
+    linkTitleInput.value = '';
+    
+    // Reload analytics
+    loadAnalytics();
+  } catch (error) {
+    console.error("Error saving URL:", error);
+    alert("An error occurred while shortening the URL");
+  }
+}
+
+// Copy short URL to clipboard
+function copyShortUrl() {
+  const url = shortUrlLink.href;
+  navigator.clipboard.writeText(url).then(() => {
+    // Visual feedback
+    const originalText = copyBtn.textContent;
+    copyBtn.textContent = 'Copied!';
+    copyBtn.style.background = '#2ecc71';
+    
+    setTimeout(() => {
+      copyBtn.textContent = originalText;
+      copyBtn.style.background = '';
+    }, 2000);
+  });
+}
+
+// Handle time filter change
+function handleTimeFilterChange() {
+  if (timeFilter.value === 'custom') {
+    customDateRange.style.display = 'flex';
+  } else {
+    customDateRange.style.display = 'none';
+    loadAnalytics();
+  }
+}
+
+// Get date range based on filter
+function getDateRange() {
+  const filter = timeFilter.value;
+  const now = new Date();
+  let startDate, endDate;
+  
+  switch(filter) {
+    case 'today':
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      break;
+    case 'week':
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      startDate = new Date(now.setDate(diff));
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
+      break;
+    case 'month':
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      break;
+    case 'custom':
+      const start = startDateInput.value;
+      const end = endDateInput.value;
+      if (start && end) {
+        startDate = new Date(start);
+        endDate = new Date(end);
+        endDate.setHours(23, 59, 59, 999);
       } else {
-        shortCode = generateID();
+        return { startDate: null, endDate: null };
       }
-      
-      const data = { 
-        longUrl, 
-        created: new Date().toISOString(),
-        visits: 0,
-        title: linkTitle || null,
-        isCustom: useCustom && customCode ? true : false
+      break;
+    default: // 'all'
+      return { startDate: null, endDate: null };
+  }
+  
+  return { startDate, endDate };
+}
+
+// Load analytics data
+async function loadAnalytics() {
+  try {
+    // Get links data
+    const linksSnapshot = await db.ref('links').once('value');
+    const links = linksSnapshot.val() || {};
+    
+    // Get visits data
+    const visitsSnapshot = await db.ref('visits').once('value');
+    const visits = visitsSnapshot.val() || {};
+    
+    // Get date range for filtering
+    const { startDate, endDate } = getDateRange();
+    
+    // Process data
+    const linksData = {};
+    let totalUrls = 0;
+    let totalVisits = 0;
+    let maxVisits = 0;
+    let uniqueVisitors = new Set();
+    
+    // Initialize links data
+    for (const code in links) {
+      linksData[code] = {
+        longUrl: links[code].longUrl,
+        title: links[code].title || 'Untitled',
+        total: 0,
+        unique: new Set(),
+        lastVisit: "N/A"
       };
+      totalUrls++;
+    }
+    
+    // Process visits
+    for (const id in visits) {
+      const visit = visits[id];
+      const visitDate = new Date(visit.time);
       
-      try {
-        // Save to Firebase
-        await fetch(`${FIREBASE_URL}/links/${shortCode}.json`, {
-          method: "PUT",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(data)
-        });
+      // Filter by date range if specified
+      if (startDate && endDate) {
+        if (visitDate < startDate || visitDate > endDate) {
+          continue;
+        }
+      }
+      
+      if (linksData[visit.code]) {
+        linksData[visit.code].total++;
+        totalVisits++;
         
-        let shortUrl;
-        if (useCustom && customDomain) {
-          shortUrl = `https://${customDomain}/${shortCode}`;
-        } else {
-          shortUrl = `${window.location.origin}${window.location.pathname}?c=${shortCode}`;
+        // Track unique visitors
+        if (visit.visitorId) {
+          linksData[visit.code].unique.add(visit.visitorId);
+          uniqueVisitors.add(visit.visitorId);
         }
         
-        resultDiv.innerHTML = `
-          <div style="color: #28a745;">✅ URL shortened successfully!</div>
-          <div style="margin-top: 10px;">
-            <strong>Short URL:</strong> 
-            <a href="${shortUrl}" target="_blank">${shortUrl}</a>
-          </div>
-          <button onclick="copyToClipboard('${shortUrl}')" style="margin-top: 10px; background: #28a745;">Copy URL</button>
-        `;
+        if (linksData[visit.code].total > maxVisits) {
+          maxVisits = linksData[visit.code].total;
+        }
         
-        // Clear inputs
-        document.getElementById("longUrl").value = '';
-        document.getElementById("customDomain").value = '';
-        document.getElementById("customCode").value = '';
-        document.getElementById("linkTitle").value = '';
-        document.getElementById("customToggle").checked = false;
-        document.getElementById("customSection").style.display = 'none';
-        
-      } catch (error) {
-        console.error("Error shortening URL:", error);
-        resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ An error occurred. Please try again.</div>';
+        if (!linksData[visit.code].lastVisit || visitDate > new Date(linksData[visit.code].lastVisit)) {
+          linksData[visit.code].lastVisit = visit.time;
+        }
       }
     }
     
-    // Copy to clipboard function
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert("URL copied to clipboard!");
-      });
-    }
+    // Update stats cards
+    totalUrlsElement.textContent = totalUrls;
+    totalVisitsElement.textContent = totalVisits;
+    mostVisitedElement.textContent = maxVisits;
+    uniqueVisitorsElement.textContent = uniqueVisitors.size;
     
-    // Get date range based on filter
-    function getDateRange() {
-      const filter = document.getElementById('timeFilter').value;
-      const now = new Date();
-      let startDate, endDate;
-      
-      switch(filter) {
-        case 'today':
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-          break;
-        case 'week':
-          const day = now.getDay();
-          const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-          startDate = new Date(now.setDate(diff));
-          startDate.setHours(0, 0, 0, 0);
-          endDate = new Date();
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        case 'month':
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-          break;
-        case 'custom':
-          const start = document.getElementById('startDate').value;
-          const end = document.getElementById('endDate').value;
-          if (start && end) {
-            startDate = new Date(start);
-            endDate = new Date(end);
-            endDate.setHours(23, 59, 59, 999);
-          } else {
-            // If no custom dates selected, return all time
-            return { startDate: null, endDate: null };
-          }
-          break;
-        default: // 'all'
-          return { startDate: null, endDate: null };
-      }
-      
-      return { startDate, endDate };
-    }
+    // Update table
+    updateLinksTable(linksData);
     
-    // Analytics loading function
-    async function loadAnalytics() {
-      const loadingDiv = document.getElementById("loadingAnalytics");
-      const emptyDiv = document.getElementById("emptyAnalytics");
-      const table = document.getElementById("analyticsTable");
-      const tbody = table.querySelector("tbody");
-      
-      loadingDiv.style.display = "block";
-      emptyDiv.style.display = "none";
-      table.style.display = "none";
-      
-      try {
-        // Fetch all short links
-        const linksRes = await fetch(`${FIREBASE_URL}/links.json`);
-        const linksData = await linksRes.json();
-        
-        // Fetch all visits
-        const visitsRes = await fetch(`${FIREBASE_URL}/visits.json`);
-        const visitsData = await visitsRes.json();
-        
-        // Get date range for filtering
-        const { startDate, endDate } = getDateRange();
-        
-        // Calculate stats
-        const stats = {};
-        let totalUrls = 0;
-        let totalVisits = 0;
-        let maxVisits = 0;
-        let uniqueVisitors = new Set();
-        
-        if (linksData) {
-          totalUrls = Object.keys(linksData).length;
-          
-          for (const code in linksData) {
-            stats[code] = {
-              longUrl: linksData[code].longUrl,
-              title: linksData[code].title || 'Untitled',
-              total: 0,
-              unique: new Set(),
-              lastVisit: "N/A"
-            };
-          }
-        }
-        
-        if (visitsData) {
-          for (const id in visitsData) {
-            const v = visitsData[id];
-            
-            // Filter by date range if specified
-            if (startDate && endDate) {
-              const visitDate = new Date(v.time);
-              if (visitDate < startDate || visitDate > endDate) {
-                continue;
-              }
-            }
-            
-            if (stats[v.code]) {
-              stats[v.code].total += 1;
-              totalVisits += 1;
-              
-              // Track unique visitors
-              if (v.visitorId) {
-                stats[v.code].unique.add(v.visitorId);
-                uniqueVisitors.add(v.visitorId);
-              }
-              
-              if (stats[v.code].total > maxVisits) {
-                maxVisits = stats[v.code].total;
-              }
-              
-              if (!stats[v.code].lastVisit || new Date(v.time) > new Date(stats[v.code].lastVisit)) {
-                stats[v.code].lastVisit = v.time;
-              }
-            }
-          }
-        }
-        
-        // Update stats cards
-        document.getElementById("totalUrls").textContent = totalUrls;
-        document.getElementById("totalVisits").textContent = totalVisits;
-        document.getElementById("mostVisited").textContent = maxVisits;
-        document.getElementById("uniqueVisitors").textContent = uniqueVisitors.size;
-        
-        // Generate chart data
-        generateVisitsChart(visitsData, startDate, endDate);
-        
-        // Populate table if we have data
-        if (totalUrls > 0) {
-          tbody.innerHTML = "";
-          for (const code in stats) {
-            const row = document.createElement("tr");
-            const lastVisit = stats[code].lastVisit !== "N/A" 
-              ? new Date(stats[code].lastVisit).toLocaleString() 
-              : "N/A";
-              
-            row.innerHTML = `
-              <td><strong>${code}</strong></td>
-              <td><a href="${stats[code].longUrl}" target="_blank">${stats[code].longUrl.substring(0, 50)}...</a></td>
-              <td>${stats[code].title}</td>
-              <td>${stats[code].total}</td>
-              <td>${stats[code].unique.size}</td>
-              <td>${lastVisit}</td>
-            `;
-            tbody.appendChild(row);
-          }
-          
-          table.style.display = "table";
-          loadingDiv.style.display = "none";
-        } else {
-          loadingDiv.style.display = "none";
-          emptyDiv.style.display = "block";
-        }
-        
-      } catch (e) {
-        console.error("Error loading analytics:", e);
-        loadingDiv.style.display = "none";
-        emptyDiv.style.display = "block";
-        emptyDiv.innerHTML = `
-          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTM1IDI4SDI5VjM0SDM1VjI4WiIgZmlsbD0iI0U5NTQ0RiIvPgo8cGF0aCBkPSJNMzIgNThDNDEuMzg4OCA1OCA0OSA1MC4zODg4IDQ5IDQxQzQ5IDMxLjYxMTIgNDEuMzg4OCAyNCAzMiAyNEMyMi42MTEyIDI0IDE1IDMxLjYxMTIgMTUgNDFDMTUgNTAuMzg4OCAyMi42MTEyIDU4IDMyIDU4Wk0zMiA1NEMyNC4yNjgxIDU0IDE4IDQ3LjczMTkgMTggNDBDMTggMzIuMjY4MSAyNC4yNjgxIDI2IDMyIDI2QzM5LjczMTkgMjYgNDYgMzIuMjY4MSA0NiA0MEM0NiA0Ny43MzE5IDM5LjczMTkgNTQgMzIgNTRaIiBmaWxsPSIjRTk1NDRGIi8+CjxwYXRoIGQ9Ik0zMyAyNkMzMyAyNi41NTIzIDMyLjU1MjMgMjcgMzIgMjdDMzEuNDQ3NyAyNyAzMSAyNi41NTIzIDMxIDI2TDMxIDIyQzMxIDIxLjQ0NzcgMzEuNDQ3NyAyMSAzMiAyMUMzMi41NTIzIDIxIDMzIDIxLjQ0NzcgMzMgMjJMMzMgMjZaIiBmaWxsPSIjRTk1NDRGIi8+CjxwYXRoIGQ9Ik0zMiAxMEMzMi4yODUyIDEwIDMyLjU2MTEgMTAuMDYxNSAzMi44MDk5IDEwLjE3OUMzMy4wNTg2IDEwLjI5NjUgMzMuMjc0NSAxMC40NjQ1IDMzLjQ0NDQgMTAuNjY2N0w0MC40NDQ0IDE5LjY2NjdDNDAuNzg5MiAyMC4wNzcgNDAuODI5MyAyMC42NTg2IDQwLjU0MDYgMjEuMTE0MkM0MC4yNTE4IDIxLjU2OTggMzkuNjk0OCAyMS44IDM5LjEgMjEuOEgyNi45QzI2LjMwNTIgMjEuOCAyNS43NDgyIDIxLjU2OTggMjUuNDU5NCAyMS4xMTQyQzI1LjE3MDcgMjAuNjU4NiAyNS4yMTA4IDIwLjA3NyAyNS41NTU2IDE5LjY2NjdMMzIuNTU1NiAxMC42NjY3QzMyLjcyNTUgMTAuNDY0NSAzMi45NDE0IDEwLjI5NjUgMzMuMTkwMSAxMC4xNzlDMzMuNDM4OSAxMC4wNjE1IDMzLjcxNDggMTAgMzQgMTBIMzJaIiBmaWxsPSIjRTk1NDRGIi8+Cjwvc3ZnPgo=" alt="Error">
-          <h3>Error Loading Analytics</h3>
-          <p>Unable to fetch analytics data. Please try again later.</p>
-        `;
+    // Update chart
+    updateTrafficChart(visits, startDate, endDate);
+    
+  } catch (error) {
+    console.error("Error loading analytics:", error);
+  }
+}
+
+// Update links table
+function updateLinksTable(linksData) {
+  linksTableBody.innerHTML = '';
+  
+  if (Object.keys(linksData).length === 0) {
+    emptyTable.style.display = 'block';
+    return;
+  }
+  
+  emptyTable.style.display = 'none';
+  
+  for (const code in linksData) {
+    const data = linksData[code];
+    const lastVisit = data.lastVisit !== "N/A" 
+      ? new Date(data.lastVisit).toLocaleDateString() 
+      : "N/A";
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><strong>${code}</strong></td>
+      <td>${data.title}</td>
+      <td class="url-cell"><a href="?c=${code}" target="_blank">${data.longUrl}</a></td>
+      <td>${data.total}</td>
+      <td>${lastVisit}</td>
+    `;
+    linksTableBody.appendChild(row);
+  }
+}
+
+// Update traffic chart
+function updateTrafficChart(visits, startDate, endDate) {
+  const ctx = document.getElementById('trafficChart').getContext('2d');
+  
+  // Destroy existing chart if it exists
+  if (trafficChart) {
+    trafficChart.destroy();
+  }
+  
+  // Group visits by date
+  const visitsByDate = {};
+  
+  for (const id in visits) {
+    const visit = visits[id];
+    const visitDate = new Date(visit.time);
+    
+    // Filter by date range if specified
+    if (startDate && endDate) {
+      if (visitDate < startDate || visitDate > endDate) {
+        continue;
       }
     }
     
-    // Generate visits chart
-    function generateVisitsChart(visitsData, startDate, endDate) {
-      const ctx = document.getElementById('visitsChart').getContext('2d');
-      
-      // Destroy existing chart if it exists
-      if (visitsChart) {
-        visitsChart.destroy();
-      }
-      
-      // If no data, show empty chart
-      if (!visitsData) {
-        visitsChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['No data available'],
-            datasets: [{
-              label: 'Visits',
-              data: [0],
-              backgroundColor: 'rgba(0, 102, 255, 0.5)',
-              borderColor: 'rgba(0, 102, 255, 1)',
-              borderWidth: 1
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true
-              }
-            }
-          }
-        });
-        return;
-      }
-      
-      // Group visits by date
-      const visitsByDate = {};
-      
-      for (const id in visitsData) {
-        const visit = visitsData[id];
-        const visitDate = new Date(visit.time);
-        
-        // Filter by date range if specified
-        if (startDate && endDate) {
-          if (visitDate < startDate || visitDate > endDate) {
-            continue;
-          }
+    const dateKey = visitDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    if (!visitsByDate[dateKey]) {
+      visitsByDate[dateKey] = 0;
+    }
+    
+    visitsByDate[dateKey]++;
+  }
+  
+  // Sort dates and get recent ones
+  const sortedDates = Object.keys(visitsByDate).sort();
+  const recentDates = sortedDates.slice(-15); // Last 15 days
+  
+  const labels = recentDates.map(date => {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  });
+  
+  const data = recentDates.map(date => visitsByDate[date]);
+  
+  // Create chart
+  trafficChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Daily Visits',
+        data: data,
+        borderColor: '#3498db',
+        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
         }
-        
-        const dateKey = visitDate.toISOString().split('T')[0]; // YYYY-MM-DD
-        
-        if (!visitsByDate[dateKey]) {
-          visitsByDate[dateKey] = 0;
-        }
-        
-        visitsByDate[dateKey]++;
-      }
-      
-      // Sort dates and get last 15 days
-      const sortedDates = Object.keys(visitsByDate).sort();
-      const recentDates = sortedDates.slice(-15); // Last 15 days
-      
-      const labels = recentDates.map(date => {
-        const d = new Date(date);
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      });
-      
-      const data = recentDates.map(date => visitsByDate[date]);
-      
-      visitsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Visits',
-            data: data,
-            backgroundColor: 'rgba(0, 102, 255, 0.5)',
-            borderColor: 'rgba(0, 102, 255, 1)',
-            borderWidth: 1
-          }]
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          }
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true
-            }
+        x: {
+          grid: {
+            display: false
           }
         }
-      });
-    }
-    
-    // URL redirection handling (for when someone visits a short URL)
-    function checkForRedirection() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('c');
-      
-      if (code) {
-        redirectToLongUrl(code);
       }
     }
-    
-    async function redirectToLongUrl(code) {
-      try {
-        // Fetch the long URL from Firebase
-        const response = await fetch(`${FIREBASE_URL}/links/${code}.json`);
-        const data = await response.json();
+  });
+}
+
+// Check for redirect
+function checkForRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("c");
+  
+  if (code) {
+    db.ref('links/' + code).get().then(snapshot => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
         
-        if (data && data.longUrl) {
-          // Generate a simple visitor ID (in a real app, you'd use a more robust method)
+        // Record visit (excluding bots)
+        const botPattern = /(bot|crawler|spider|curl|wget)/i;
+        if (!botPattern.test(navigator.userAgent)) {
+          // Generate a simple visitor ID
           const visitorId = Math.random().toString(36).substring(2) + Date.now().toString(36);
           
-          // Record the visit
-          await fetch(`${FIREBASE_URL}/visits.json`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-              code: code,
-              time: new Date().toISOString(),
-              referrer: document.referrer || "Direct",
-              visitorId: visitorId
-            })
+          db.ref('visits').push({ 
+            code, 
+            time: new Date().toISOString(), 
+            ua: navigator.userAgent, 
+            ref: document.referrer || "Direct",
+            visitorId: visitorId
           });
           
-          // Update visit count in the link data
+          // Update visit count
           const updatedVisits = (data.visits || 0) + 1;
-          await fetch(`${FIREBASE_URL}/links/${code}.json`, {
-            method: "PATCH",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-              visits: updatedVisits
-            })
+          db.ref('links/' + code).update({
+            visits: updatedVisits
           });
-          
-          // Redirect to the long URL
-          window.location.href = data.longUrl;
-        } else {
-          document.body.innerHTML = `
-            <div style="text-align: center; padding: 50px;">
-              <h2>URL Not Found</h2>
-              <p>The short URL you're looking for doesn't exist.</p>
-              <a href="./">Back to URL Shortener</a>
-            </div>
-          `;
         }
-      } catch (error) {
-        console.error("Error redirecting:", error);
-        document.body.innerHTML = `
-          <div style="text-align: center; padding: 50px;">
-            <h2>Error</h2>
-            <p>An error occurred while redirecting. Please try again.</p>
-            <a href="./">Back to URL Shortener</a>
-          </div>
-        `;
+        
+        // Redirect to the long URL
+        window.location.href = data.longUrl;
+      } else {
+        alert("Link does not exist!");
       }
-    }
-    
-    // Initialize the application
-    document.addEventListener('DOMContentLoaded', function() {
-      // Set up event listeners
-      document.getElementById('shortenBtn').addEventListener('click', shortenUrl);
-      document.getElementById('longUrl').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          shortenUrl();
-        }
-      });
-      
-      // Set default dates for custom range
-      const today = new Date();
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(today.getDate() - 7);
-      
-      document.getElementById('startDate').valueAsDate = oneWeekAgo;
-      document.getElementById('endDate').valueAsDate = today;
-      
-      // Check if we need to redirect (if this is a short URL visit)
-      checkForRedirection();
     });
-  </script>
+  }
+}
+</script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </body>
 </html>
