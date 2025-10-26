@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting...</title>
+  <script>
+    const FIREBASE_URL = "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app/";
+
+    async function redirectNow() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("c");
+      if (!code) {
+        document.body.innerHTML = "<h2>❌ Invalid shortlink.</h2>";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${FIREBASE_URL}/links/${code}.json`);
+        const data = await res.json();
+
+        if (data && data.longUrl) {
+          // Visit log সেভ করা
+          const visit = {
+            code,
+            time: new Date().toISOString(),
+            ua: navigator.userAgent,
+            ref: document.referrer || "Direct"
+          };
+          await fetch(`${FIREBASE_URL}/visits.json`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(visit)
+          });
+
+          // Redirect
+          window.location.href = data.longUrl;
+        } else {
+          document.body.innerHTML = "<h2>❌ Link expired or not found.</h2>";
+        }
+      } catch (e) {
+        document.body.innerHTML = "<h2>⚠️ Error fetching link.</h2>";
+        console.error(e);
+      }
+    }
+
+    window.onload = redirectNow;
+  </script>
+</head>
+<body>
+  <p style="text-align:center;margin-top:30%;">Redirecting...</p>
+</body>
+</html>
