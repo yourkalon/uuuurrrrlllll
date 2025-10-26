@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart URL Redirect</title>
   <script>
-    // 🔗 তোমার short links map
+    // 🔗 তোমার short links
     const links = {
       "a1": "https://example.com/page1",
       "b2": "https://example.com/page2",
       "c3": "https://example.com/page3"
     };
 
-    // ✅ URL path থেকে শেষের অংশটা (key) বের করা
+    // ✅ শেষের অংশ (short code) বের করা
     const pathParts = location.pathname.split("/");
     const key = pathParts[pathParts.length - 1].trim();
 
@@ -39,7 +39,7 @@
       }
     }
 
-    // 🚀 Redirect logic
+    // 🚀 Redirect Logic
     window.onload = function() {
       if (links[key]) {
         logVisit(key).finally(() => {
