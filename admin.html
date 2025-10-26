@@ -5,99 +5,229 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>URL Shortener Analytics</title>
   <style>
+    /* Reset & base */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f6fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
       padding: 20px;
+      color: #333;
     }
-    h2 { text-align:center; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
+
+    h2 {
       text-align: center;
+      margin-bottom: 20px;
+      color: #222;
     }
-    th {
+
+    /* Card style for filter */
+    .filter {
+      margin: 0 auto 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .filter label {
+      display: flex;
+      flex-direction: column;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .filter input[type="date"], .filter input[type="text"] {
+      margin-top: 5px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      transition: border 0.2s;
+    }
+
+    .filter input:focus {
+      outline: none;
+      border-color: #0066ff;
+      box-shadow: 0 0 5px rgba(0,102,255,0.3);
+    }
+
+    button {
       background-color: #0066ff;
       color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
     }
-    tr:nth-child(even) { background: #f2f2f2; }
+
+    button:hover {
+      background-color: #0052cc;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Table style */
+    table {
+      width: 100%;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background: #0066ff;
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    tr:nth-child(even) { background: #f9f9f9; }
+    tr:hover { background: #f1f7ff; }
+
+    /* See More button */
+    #seeMoreBtn {
+      display: block;
+      margin: 20px auto;
+    }
+
+    /* Responsive */
+    @media(max-width: 600px){
+      .filter {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      th, td { font-size: 12px; padding: 10px 8px; }
+    }
   </style>
 </head>
 <body>
-  <h2>🔍 URL Shortener Analytics Dashboard</h2>
+
+  <h2> URL Shortener Analytics Dashboard</h2>
+
+  <!-- Date Filter + Search -->
+  <div class="filter">
+    <label>Start Date
+      <input type="date" id="startDate">
+    </label>
+    <label>End Date
+      <input type="date" id="endDate">
+    </label>
+    <label>Search by Title
+      <input type="text" id="titleSearch" placeholder="Type title...">
+    </label>
+    <button onclick="loadAnalytics()">Filter</button>
+  </div>
+
+  <!-- Analytics Table -->
   <table id="analyticsTable">
     <thead>
       <tr>
+        <th>Title</th>
         <th>Short Code</th>
-        <th>Long URL</th>
+        <th>Unique Visitors</th>
         <th>Total Visits</th>
-        <th>Last Visit</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
+  <button id="seeMoreBtn" onclick="seeMore()">See More</button>
+
   <script>
     const FIREBASE_URL = "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app/";
+    let allStats = [];  // Store all stats
+    let displayedCount = 4; // initially show 4
 
     async function loadAnalytics() {
       try {
-        // 1️⃣ Fetch all short links
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+        const titleSearch = document.getElementById("titleSearch").value.toLowerCase();
+        let start = startDate ? new Date(startDate) : null;
+        let end = endDate ? new Date(endDate) : null;
+
+        // Fetch links
         const linksRes = await fetch(`${FIREBASE_URL}/links.json`);
         const linksData = await linksRes.json();
 
-        // 2️⃣ Fetch all visits
+        // Fetch visits
         const visitsRes = await fetch(`${FIREBASE_URL}/visits.json`);
         const visitsData = await visitsRes.json();
 
-        // 3️⃣ Calculate visit stats
-        const stats = {};
+        // Prepare stats
+        allStats = [];
         for (const code in linksData) {
-          stats[code] = {
-            longUrl: linksData[code].longUrl,
-            total: 0,
-            lastVisit: "N/A"
-          };
-        }
+          const title = linksData[code].title || linksData[code].longUrl;
+          if(titleSearch && !title.toLowerCase().includes(titleSearch)) continue;
 
-        if (visitsData) {
-          for (const id in visitsData) {
-            const v = visitsData[id];
-            if (stats[v.code]) {
-              stats[v.code].total += 1;
-              if (!stats[v.code].lastVisit || new Date(v.time) > new Date(stats[v.code].lastVisit)) {
-                stats[v.code].lastVisit = v.time;
-              }
+          let total = 0;
+          let uniqueVisitors = new Set();
+
+          if(visitsData){
+            for(const id in visitsData){
+              const v = visitsData[id];
+              const visitTime = new Date(v.time);
+              if(v.code !== code) continue;
+              if((start && visitTime < start) || (end && visitTime > end)) continue;
+
+              total += 1;
+              uniqueVisitors.add(v.visitorId || v.ip || id);
             }
           }
+
+          allStats.push({ title, code, total, uniqueCount: uniqueVisitors.size });
         }
 
-        // 4️⃣ Populate table
-        const tbody = document.querySelector("#analyticsTable tbody");
-        tbody.innerHTML = "";
-        for (const code in stats) {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${code}</td>
-            <td><a href="${stats[code].longUrl}" target="_blank">${stats[code].longUrl}</a></td>
-            <td>${stats[code].total}</td>
-            <td>${stats[code].lastVisit}</td>
-          `;
-          tbody.appendChild(row);
-        }
-
-      } catch (e) {
+        displayedCount = 4; // reset
+        renderTable();
+      } catch(e) {
         console.error("Error loading analytics:", e);
         document.body.innerHTML = "<h2>⚠️ Error fetching analytics data.</h2>";
       }
     }
 
+    function renderTable() {
+      const tbody = document.querySelector("#analyticsTable tbody");
+      tbody.innerHTML = "";
+      const displayStats = allStats.slice(0, displayedCount);
+
+      displayStats.forEach(stat => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${stat.title}</td>
+          <td>${stat.code}</td>
+          <td>${stat.uniqueCount}</td>
+          <td>${stat.total}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      // Hide See More button if all displayed
+      document.getElementById("seeMoreBtn").style.display = displayedCount >= allStats.length ? "none" : "block";
+    }
+
+    function seeMore() {
+      displayedCount += 4; // show 4 more
+      renderTable();
+    }
+
     window.onload = loadAnalytics;
   </script>
+
 </body>
 </html>
