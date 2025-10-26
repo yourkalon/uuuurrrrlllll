@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professional URL Shortener</title>
+<style>
+body { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; }
+.container { max-width:900px; margin:50px auto; padding:20px; background:#fff; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+input, button { padding:10px; margin:5px; }
+button { cursor:pointer; }
+table { width:100%; border-collapse:collapse; margin-top:20px; }
+th, td { border:1px solid #ccc; padding:10px; text-align:left; }
+h2 { text-align:center; }
+canvas { display:block; margin:20px auto; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Professional URL Shortener</h1>
+
+  <!-- Shorten Form -->
+  <div id="shortenSection">
+    <input id="longUrl" type="text" placeholder="Enter URL" style="width:60%">
+    <input id="customCode" type="text" placeholder="Custom code (optional)" style="width:30%">
+    <button id="shortenBtn">Shorten</button>
+    <div id="shortUrl" style="margin-top:20px;"></div>
+  </div>
+
+  <hr>
+
+  <!-- Analytics Section -->
+  <div id="analyticsSection">
+    <h2>Analytics Dashboard</h2>
+    <canvas id="trafficChart" width="800" height="300"></canvas>
+    <table id="linksTable">
+      <thead>
+        <tr>
+          <th>Short Code</th>
+          <th>Long URL</th>
+          <th>Total Visits</th>
+          <th>Last Visit</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Firebase config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "urlshortener-d1814",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Generate ID
+function generateID(length=5){
+  const chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  return Array.from({length},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
+}
+
+// Shorten Button
+document.getElementById("shortenBtn").addEventListener("click", async ()=>{
+  const longUrl=document.getElementById("longUrl").value;
+  const customCode=document.getElementById("customCode").value;
+  if(!longUrl) return alert("Enter a valid URL");
+  const code=customCode||generateID();
+  await db.ref('links/'+code).set({ longUrl, createdAt:new Date().toISOString() });
+  document.getElementById("shortUrl").innerHTML=`✅ Short URL: <a href="?c=${code}" target="_blank">${window.location.origin}?c=${code}</a>`;
+});
+
+// Redirect Handling
+const params=new URLSearchParams(window.location.search);
+const code=params.get("c");
+if(code){
+  db.ref('links/'+code).get().then(snapshot=>{
+    if(snapshot.exists()){
+      const data=snapshot.val();
+      const botPattern=/(bot|crawler|spider|curl|wget)/i;
+      if(!botPattern.test(navigator.userAgent)){
+        db.ref('visits').push({ code, time:new Date().toISOString(), ua:navigator.userAgent, ref:document.referrer||"Direct" });
+      }
+      window.location.href=data.longUrl;
+    }else{
+      alert("Link does not exist!");
+    }
+  });
+}
+
+// Analytics Dashboard
+function loadAnalytics(){
+  db.ref('links').get().then(linksSnap=>{
+    const links=linksSnap.val()||{};
+    db.ref('visits').get().then(visSnap=>{
+      const visits=Object.values(visSnap.val()||{}).filter(v=>!/(bot|crawler|spider|curl|wget)/i.test(v.ua));
+      // Table
+      const tbody=document.querySelector("#linksTable tbody");
+      tbody.innerHTML="";
+      Object.entries(links).forEach(([code,data])=>{
+        const linkVisits=visits.filter(v=>v.code===code);
+        const lastVisit=linkVisits.length?linkVisits[linkVisits.length-1].time:"N/A";
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${code}</td><td><a href="?c=${code}" target="_blank">${data.longUrl}</a></td><td>${linkVisits.length}</td><td>${lastVisit}</td>`;
+        tbody.appendChild(tr);
+      });
+      // Chart
+      const counts={};
+      visits.forEach(v=>{
+        const date=new Date(v.time).toISOString().slice(0,10);
+        counts[date]=(counts[date]||0)+1;
+      });
+      const chartData=Object.entries(counts).map(([date,count])=>({date,count}));
+      const ctx=document.getElementById("trafficChart").getContext('2d');
+      new Chart(ctx,{
+        type:'line',
+        data:{
+          labels: chartData.map(d=>d.date),
+          datasets:[{
+            label:'Visits',
+            data: chartData.map(d=>d.count),
+            borderColor:'#8884d8',
+            fill:false
+          }]
+        }
+      });
+    });
+  });
+}
+loadAnalytics();
+
+</script>
+
+</body>
+</html>
