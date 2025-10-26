@@ -5,86 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Professional URL Shortener</title>
 <style>
-/* Reset & Base */
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f0f2f5; color:#333; }
-
-/* Container */
-.container { max-width:1000px; margin:50px auto; padding:30px; background:#fff; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.08); }
-
-/* Headings */
-h1, h2 { text-align:center; margin-bottom:20px; color:#444; }
-
-/* Sections */
-section { margin-bottom:50px; }
-
-/* Form Styling */
-form { display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin-bottom:20px; }
-form input { padding:12px 15px; border:1px solid #ccc; border-radius:8px; width:220px; font-size:16px; }
-form input#urlTitle { width:180px; }
-form button { padding:12px 25px; background:#4e73df; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer; transition:0.3s; }
-form button:hover { background:#2e59d9; }
-
-/* Short URL display */
-#shortUrl { margin-top:15px; text-align:center; font-size:16px; word-break:break-all; }
-
-/* Analytics Table */
-table { width:100%; border-collapse:collapse; margin-top:25px; }
-th, td { border:1px solid #ddd; padding:12px; text-align:center; font-size:14px; }
-th { background:#4e73df; color:#fff; }
-
-/* Chart */
-canvas { margin-top:25px; }
-
-/* Date Filters */
-.filters { display:flex; justify-content:center; gap:10px; margin-bottom:15px; }
-.filters label { font-weight:500; }
-.filters input, .filters select { padding:8px 12px; border-radius:6px; border:1px solid #ccc; }
-
-/* Responsive */
-@media(max-width:768px){
-  form input { width:100%; }
-  .filters { flex-direction:column; align-items:center; }
-}
+body { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; }
+.container { max-width:900px; margin:50px auto; padding:20px; background:#fff; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+input, button { padding:10px; margin:5px; }
+button { cursor:pointer; }
+table { width:100%; border-collapse:collapse; margin-top:20px; }
+th, td { border:1px solid #ccc; padding:10px; text-align:left; }
+h2 { text-align:center; }
+canvas { display:block; margin:20px auto; }
 </style>
 </head>
 <body>
-
 <div class="container">
   <h1>Professional URL Shortener</h1>
 
-  <!-- URL Shortener Section -->
-  <section id="shortenSection">
-    <h2>Shorten Your URL</h2>
-    <form id="shortenForm">
-      <input id="longUrl" type="text" placeholder="Enter Long URL" required>
-      <input id="customCode" type="text" placeholder="Custom Short Code (Optional)">
-      <input id="urlTitle" type="text" placeholder="Title (Optional)">
-      <button type="submit">Shorten URL</button>
-    </form>
-    <div id="shortUrl"></div>
-  </section>
+  <!-- Shorten Form -->
+  <div id="shortenSection">
+    <input id="longUrl" type="text" placeholder="Enter URL" style="width:60%">
+    <input id="customCode" type="text" placeholder="Custom code (optional)" style="width:30%">
+    <button id="shortenBtn">Shorten</button>
+    <div id="shortUrl" style="margin-top:20px;"></div>
+  </div>
+
+  <hr>
 
   <!-- Analytics Section -->
-  <section id="analyticsSection">
+  <div id="analyticsSection">
     <h2>Analytics Dashboard</h2>
-    <div class="filters">
-      <label for="filterType">View:</label>
-      <select id="filterType">
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="custom">Custom</option>
-      </select>
-      <input type="date" id="startDate" style="display:none;">
-      <input type="date" id="endDate" style="display:none;">
-      <button id="applyFilter">Apply</button>
-    </div>
-    <canvas id="trafficChart" width="900" height="350"></canvas>
+    <canvas id="trafficChart" width="800" height="300"></canvas>
     <table id="linksTable">
       <thead>
         <tr>
           <th>Short Code</th>
-          <th>Title</th>
           <th>Long URL</th>
           <th>Total Visits</th>
           <th>Last Visit</th>
@@ -92,10 +44,11 @@ canvas { margin-top:25px; }
       </thead>
       <tbody></tbody>
     </table>
-  </section>
+  </div>
+
 </div>
 
-<!-- Firebase & Chart.js -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -120,16 +73,14 @@ function generateID(length=5){
   return Array.from({length},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
 }
 
-// Shorten Form Submit
-document.getElementById("shortenForm").addEventListener("submit", async (e)=>{
-  e.preventDefault();
+// Shorten Button
+document.getElementById("shortenBtn").addEventListener("click", async ()=>{
   const longUrl=document.getElementById("longUrl").value;
   const customCode=document.getElementById("customCode").value;
-  const urlTitle=document.getElementById("urlTitle").value;
+  if(!longUrl) return alert("Enter a valid URL");
   const code=customCode||generateID();
-  await db.ref('links/'+code).set({ longUrl, title: urlTitle, createdAt:new Date().toISOString() });
+  await db.ref('links/'+code).set({ longUrl, createdAt:new Date().toISOString() });
   document.getElementById("shortUrl").innerHTML=`✅ Short URL: <a href="?c=${code}" target="_blank">${window.location.origin}?c=${code}</a>`;
-  loadAnalytics(); // Refresh analytics
 });
 
 // Redirect Handling
@@ -151,26 +102,11 @@ if(code){
 }
 
 // Analytics Dashboard
-let trafficChart;
-function loadAnalytics(filterType="daily", start=null, end=null){
+function loadAnalytics(){
   db.ref('links').get().then(linksSnap=>{
     const links=linksSnap.val()||{};
     db.ref('visits').get().then(visSnap=>{
-      let visits=Object.values(visSnap.val()||{}).filter(v=>!/(bot|crawler|spider|curl|wget)/i.test(v.ua));
-      
-      // Apply custom filter dates
-      if(filterType==="daily" && start) {
-        visits = visits.filter(v => new Date(v.time).toDateString()===new Date(start).toDateString());
-      }
-      else if(filterType==="weekly" && start && end){
-        const s=new Date(start), e=new Date(end);
-        visits = visits.filter(v=>{const d=new Date(v.time); return d>=s && d<=e;});
-      }
-      else if(filterType==="custom" && start && end){
-        const s=new Date(start), e=new Date(end);
-        visits = visits.filter(v=>{const d=new Date(v.time); return d>=s && d<=e;});
-      }
-
+      const visits=Object.values(visSnap.val()||{}).filter(v=>!/(bot|crawler|spider|curl|wget)/i.test(v.ua));
       // Table
       const tbody=document.querySelector("#linksTable tbody");
       tbody.innerHTML="";
@@ -178,10 +114,9 @@ function loadAnalytics(filterType="daily", start=null, end=null){
         const linkVisits=visits.filter(v=>v.code===code);
         const lastVisit=linkVisits.length?linkVisits[linkVisits.length-1].time:"N/A";
         const tr=document.createElement("tr");
-        tr.innerHTML=`<td>${code}</td><td>${data.title||""}</td><td><a href="?c=${code}" target="_blank">${data.longUrl}</a></td><td>${linkVisits.length}</td><td>${lastVisit}</td>`;
+        tr.innerHTML=`<td>${code}</td><td><a href="?c=${code}" target="_blank">${data.longUrl}</a></td><td>${linkVisits.length}</td><td>${lastVisit}</td>`;
         tbody.appendChild(tr);
       });
-
       // Chart
       const counts={};
       visits.forEach(v=>{
@@ -190,17 +125,15 @@ function loadAnalytics(filterType="daily", start=null, end=null){
       });
       const chartData=Object.entries(counts).map(([date,count])=>({date,count}));
       const ctx=document.getElementById("trafficChart").getContext('2d');
-      if(trafficChart) trafficChart.destroy();
-      trafficChart=new Chart(ctx,{
+      new Chart(ctx,{
         type:'line',
         data:{
           labels: chartData.map(d=>d.date),
           datasets:[{
             label:'Visits',
             data: chartData.map(d=>d.count),
-            borderColor:'#4e73df',
-            backgroundColor:'rgba(78,115,223,0.1)',
-            fill:true
+            borderColor:'#8884d8',
+            fill:false
           }]
         }
       });
@@ -209,18 +142,6 @@ function loadAnalytics(filterType="daily", start=null, end=null){
 }
 loadAnalytics();
 
-// Filter handling
-document.getElementById("filterType").addEventListener("change",(e)=>{
-  const val=e.target.value;
-  document.getElementById("startDate").style.display=(val!=="daily")?"inline-block":"none";
-  document.getElementById("endDate").style.display=(val!=="daily")?"inline-block":"none";
-});
-document.getElementById("applyFilter").addEventListener("click",()=>{
-  const filterType=document.getElementById("filterType").value;
-  const start=document.getElementById("startDate").value;
-  const end=document.getElementById("endDate").value;
-  loadAnalytics(filterType,start,end);
-});
 </script>
 
 </body>
