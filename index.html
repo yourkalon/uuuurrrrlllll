@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>URL Redirect</title>
+  <script>
+    // Short link map
+    const links = {
+      "a1": "https://example.com/page1",
+      "b2": "https://example.com/page2",
+      "c3": "https://example.com/page3"
+    };
+
+    // Get the key from URL
+    const key = location.pathname.replace("/", "").trim();
+
+    if (links[key]) {
+      // Send data to Google Script before redirect
+      fetch("YOUR_GOOGLE_SCRIPT_URL?short=" + key)
+        .then(() => {
+          // Redirect
+          window.location.href = links[key];
+        });
+    } else {
+      document.write("<h3>Invalid or expired link!</h3>");
+    }
+  </script>
+</head>
+<body></body>
+</html>
