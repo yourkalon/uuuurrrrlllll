@@ -1,30 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>URL Redirect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart URL Redirect</title>
   <script>
-    // Short link map
+    // 🔗 তোমার short links লিস্ট
     const links = {
       "a1": "https://example.com/page1",
       "b2": "https://example.com/page2",
       "c3": "https://example.com/page3"
     };
 
-    // Get the key from URL
+    // 🔑 URL path থেকে short code বের করা
     const key = location.pathname.replace("/", "").trim();
 
-    if (links[key]) {
-      // Send data to Google Script before redirect
-      fetch("YOUR_GOOGLE_SCRIPT_URL?short=" + key)
-        .then(() => {
-          // Redirect
+    // 🧠 Firebase Database URL (তোমারটা)
+    const FIREBASE_URL = "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app/";
+
+    // 🧾 Visit লগ করার ফাংশন
+    async function logVisit(shortCode) {
+      const data = {
+        short: shortCode,
+        time: new Date().toISOString(),
+        ua: navigator.userAgent,
+        ref: document.referrer || "Direct"
+      };
+
+      try {
+        await fetch(`${FIREBASE_URL}/visits.json`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(data)
+        });
+      } catch (e) {
+        console.error("Log failed:", e);
+      }
+    }
+
+    // 🚀 Redirect Logic
+    window.onload = function() {
+      if (links[key]) {
+        logVisit(key).finally(() => {
           window.location.href = links[key];
         });
-    } else {
-      document.write("<h3>Invalid or expired link!</h3>");
-    }
+      } else {
+        document.body.innerHTML = `
+          <div style="text-align:center;margin-top:20%;">
+            <h2>❌ Invalid or expired link</h2>
+            <p>This shortlink does not exist.</p>
+          </div>
+        `;
+      }
+    };
   </script>
 </head>
-<body></body>
+<body>
+</body>
 </html>
