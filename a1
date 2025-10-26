@@ -5,20 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart URL Redirect</title>
   <script>
-    // 🔗 তোমার short links লিস্ট
+    // 🔗 তোমার short links map
     const links = {
       "a1": "https://example.com/page1",
       "b2": "https://example.com/page2",
       "c3": "https://example.com/page3"
     };
 
-    // 🔑 URL path থেকে short code বের করা
-    const key = location.pathname.replace("/", "").trim();
+    // ✅ URL path থেকে শেষের অংশটা (key) বের করা
+    const pathParts = location.pathname.split("/");
+    const key = pathParts[pathParts.length - 1].trim();
 
-    // 🧠 Firebase Database URL (তোমারটা)
+    // 🧠 Firebase Database URL
     const FIREBASE_URL = "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
-    // 🧾 Visit লগ করার ফাংশন
+    // 📈 Visit লগ ফাংশন
     async function logVisit(shortCode) {
       const data = {
         short: shortCode,
@@ -38,7 +39,7 @@
       }
     }
 
-    // 🚀 Redirect Logic
+    // 🚀 Redirect logic
     window.onload = function() {
       if (links[key]) {
         logVisit(key).finally(() => {
@@ -55,6 +56,5 @@
     };
   </script>
 </head>
-<body>
-</body>
+<body></body>
 </html>
