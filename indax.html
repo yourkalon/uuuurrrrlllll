@@ -1,44 +1,36 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart URL Shortener</title>
-  <style>
-    body { font-family:sans-serif; display:flex;justify-content:center;align-items:center;height:100vh;background:#f5f6fa;margin:0; }
-    .box { background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);text-align:center;width:90%;max-width:360px; }
-    input,button { width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc; }
-    button { border:none;background:#0066ff;color:#fff;cursor:pointer; }
-    .result { margin-top:10px;font-weight:bold;color:#333; word-break:break-all; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart URL Shortener</title>
+<style>
+  body{font-family:Arial,sans-serif;background:#f5f6fa;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+  .box{background:#fff;padding:25px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);text-align:center;width:90%;max-width:380px}
+  input,button{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc;box-sizing:border-box}
+  button{border:none;background:#0066ff;color:#fff;cursor:pointer;font-size:16px}
+  .result{margin-top:12px;font-weight:bold;color:#333;word-break:break-all}
+</style>
 </head>
 <body>
-  <div class="box">
-    <h3>🔗 URL Shortener</h3>
-    <input id="longUrl" placeholder="Enter your URL..." />
-    <button onclick="shortenUrl()">Shorten</button>
-    <div class="result" id="result"></div>
-  </div>
+<div class="box">
+  <h2>🔗 URL Shortener</h2>
+  <input id="longUrl" placeholder="Enter your long URL..." />
+  <button onclick="shortenUrl()">Shorten</button>
+  <div class="result" id="result"></div>
+</div>
 
-  <script>
-    const FIREBASE_URL = "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app/";
-
-    function generateID(len=5){
-      return Array.from({length:len},()=>"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[Math.floor(Math.random()*62)]).join('');
-    }
-
-    async function shortenUrl(){
-      const url=document.getElementById("longUrl").value.trim();
-      if(!url){ alert("Enter a valid URL!"); return; }
-      const code=generateID();
-      await fetch(`${FIREBASE_URL}/links/${code}.json`,{
-        method:"PUT",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({longUrl:url,created:new Date().toISOString()})
-      });
-      const short=`${window.location.origin}/redirect.html?c=${code}`;
-      document.getElementById("result").innerHTML=`✅ Short URL: <a href="${short}" target="_blank">${short}</a>`;
-    }
-  </script>
+<script>
+const FIREBASE_URL="https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app/";
+function generateID(len=5){const c="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";return Array.from({length:len},()=>c[Math.floor(Math.random()*c.length)]).join('');}
+async function shortenUrl(){
+  const url=document.getElementById("longUrl").value.trim();
+  if(!url){alert("Please enter a valid URL!");return;}
+  const code=generateID();
+  await fetch(`${FIREBASE_URL}/links/${code}.json`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({longUrl:url,created:new Date().toISOString()})});
+  const short=`${window.location.origin}${window.location.pathname.replace("index.html","")}redirect.html?c=${code}`;
+  document.getElementById("result").innerHTML=`✅ Short URL: <a href="${short}" target="_blank">${short}</a>`;
+}
+</script>
 </body>
 </html>
