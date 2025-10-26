@@ -1,60 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart URL Redirect</title>
+  <title>Smart URL Shortener</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .box {
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #0066ff;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .result {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🔗 URL Shortener</h2>
+    <input type="text" id="longUrl" placeholder="Enter your long URL..." />
+    <button onclick="shortenUrl()">Shorten</button>
+    <div class="result" id="result"></div>
+  </div>
+
   <script>
-    // 🔗 তোমার short links
-    const links = {
-      "a1": "https://example.com/page1",
-      "b2": "https://example.com/page2",
-      "c3": "https://example.com/page3"
-    };
-
-    // ✅ শেষের অংশ (short code) বের করা
-    const pathParts = location.pathname.split("/");
-    const key = pathParts[pathParts.length - 1].trim();
-
-    // 🧠 Firebase Database URL
     const FIREBASE_URL = "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
-    // 📈 Visit লগ ফাংশন
-    async function logVisit(shortCode) {
-      const data = {
-        short: shortCode,
-        time: new Date().toISOString(),
-        ua: navigator.userAgent,
-        ref: document.referrer || "Direct"
-      };
-
-      try {
-        await fetch(`${FIREBASE_URL}/visits.json`, {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(data)
-        });
-      } catch (e) {
-        console.error("Log failed:", e);
-      }
+    // Random short ID তৈরি
+    function generateID(length = 5) {
+      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      return Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     }
 
-    // 🚀 Redirect Logic
-    window.onload = function() {
-      if (links[key]) {
-        logVisit(key).finally(() => {
-          window.location.href = links[key];
-        });
-      } else {
-        document.body.innerHTML = `
-          <div style="text-align:center;margin-top:20%;">
-            <h2>❌ Invalid or expired link</h2>
-            <p>This shortlink does not exist.</p>
-          </div>
-        `;
+    async function shortenUrl() {
+      const longUrl = document.getElementById("longUrl").value.trim();
+      if (!longUrl) {
+        alert("Please enter a valid URL!");
+        return;
       }
-    };
+
+      const shortCode = generateID();
+      const data = { longUrl, created: new Date().toISOString() };
+
+      // Firebase এ সেভ করা
+      await fetch(`${FIREBASE_URL}/links/${shortCode}.json`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      });
+
+      const shortUrl = `${window.location.origin}${window.location.pathname.replace("index.html","")}redirect.html?c=${shortCode}`;
+      document.getElementById("result").innerHTML = `✅ Short URL: <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
+    }
   </script>
-</head>
-<body></body>
+</body>
 </html>
