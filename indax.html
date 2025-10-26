@@ -10,6 +10,8 @@
       --primary-dark: #0052cc;
       --secondary: #6c757d;
       --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
       --light: #f8f9fa;
       --dark: #343a40;
       --border-radius: 8px;
@@ -98,7 +100,27 @@
       gap: 15px;
     }
     
-    input {
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .form-row .form-group {
+      flex: 1;
+    }
+    
+    label {
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    input, select {
       padding: 12px 15px;
       border-radius: var(--border-radius);
       border: 1px solid #ced4da;
@@ -106,7 +128,7 @@
       transition: border-color 0.3s;
     }
     
-    input:focus {
+    input:focus, select:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
@@ -126,6 +148,14 @@
     
     button:hover {
       background: var(--primary-dark);
+    }
+    
+    button.secondary {
+      background: var(--secondary);
+    }
+    
+    button.secondary:hover {
+      background: #5a6268;
     }
     
     .result {
@@ -195,6 +225,26 @@
       font-size: 0.9rem;
     }
     
+    .filter-section {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .date-range {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
     .loading {
       text-align: center;
       padding: 20px;
@@ -221,6 +271,67 @@
       font-size: 0.9rem;
     }
     
+    .custom-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    .chart-container {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 20px;
+      margin-bottom: 30px;
+      height: 300px;
+    }
+    
     @media (max-width: 768px) {
       .nav-tabs {
         flex-direction: column;
@@ -236,14 +347,29 @@
       .stats-cards {
         grid-template-columns: 1fr;
       }
+      
+      .form-row {
+        flex-direction: column;
+      }
+      
+      .filter-section {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .date-range {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>🔗 Smart URL Shortener</h1>
-      <p class="subtitle">Shorten your URLs and track their performance</p>
+      <p class="subtitle">Shorten your URLs with custom links and track their performance</p>
     </header>
     
     <div class="nav-tabs">
@@ -257,7 +383,36 @@
         <p>Enter a long URL to create a short, shareable link</p>
         
         <div class="shortener-form">
-          <input type="text" id="longUrl" placeholder="Enter your long URL..." />
+          <div class="form-group">
+            <label for="longUrl">Long URL</label>
+            <input type="text" id="longUrl" placeholder="Enter your long URL..." />
+          </div>
+          
+          <div class="custom-toggle">
+            <span>Customize Short Link</span>
+            <label class="switch">
+              <input type="checkbox" id="customToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div id="customSection" style="display: none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="customDomain">Domain (Optional)</label>
+                <input type="text" id="customDomain" placeholder="yourdomain.com" />
+              </div>
+              <div class="form-group">
+                <label for="customCode">Custom Code</label>
+                <input type="text" id="customCode" placeholder="my-link" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="linkTitle">Link Title (Optional)</label>
+              <input type="text" id="linkTitle" placeholder="My Awesome Link" />
+            </div>
+          </div>
+          
           <button id="shortenBtn">Shorten URL</button>
         </div>
         
@@ -279,11 +434,48 @@
           <div class="stat-label">Most Visited</div>
           <div class="stat-value" id="mostVisited">0</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-label">Unique Visitors</div>
+          <div class="stat-value" id="uniqueVisitors">0</div>
+        </div>
       </div>
       
       <div class="card">
         <h2>URL Analytics</h2>
         <p>Track performance of your shortened URLs</p>
+        
+        <div class="filter-section">
+          <div class="filter-group">
+            <label for="timeFilter">Time Period</label>
+            <select id="timeFilter">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="custom">Custom Range</option>
+            </select>
+          </div>
+          
+          <div id="customDateRange" style="display: none;">
+            <div class="date-range">
+              <div class="filter-group">
+                <label for="startDate">Start Date</label>
+                <input type="date" id="startDate" />
+              </div>
+              <div class="filter-group">
+                <label for="endDate">End Date</label>
+                <input type="date" id="endDate" />
+              </div>
+              <button id="applyDateRange" class="secondary">Apply</button>
+            </div>
+          </div>
+          
+          <button id="refreshAnalytics" class="secondary">Refresh Data</button>
+        </div>
+        
+        <div class="chart-container">
+          <canvas id="visitsChart"></canvas>
+        </div>
         
         <div class="loading" id="loadingAnalytics">Loading analytics data...</div>
         <div class="empty-state" id="emptyAnalytics" style="display: none;">
@@ -297,7 +489,9 @@
             <tr>
               <th>Short Code</th>
               <th>Long URL</th>
+              <th>Title</th>
               <th>Total Visits</th>
+              <th>Unique Visitors</th>
               <th>Last Visit</th>
             </tr>
           </thead>
@@ -313,6 +507,7 @@
 
   <script>
     const FIREBASE_URL = "https://urlshortener-d1814-default-rtdb.asia-southeast1.firebasedatabase.app/";
+    let visitsChart = null;
     
     // Tab switching functionality
     document.querySelectorAll('.tab-btn').forEach(button => {
@@ -332,6 +527,27 @@
       });
     });
     
+    // Toggle custom URL section
+    document.getElementById('customToggle').addEventListener('change', function() {
+      document.getElementById('customSection').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    // Time filter change handler
+    document.getElementById('timeFilter').addEventListener('change', function() {
+      const customRange = document.getElementById('customDateRange');
+      customRange.style.display = this.value === 'custom' ? 'block' : 'none';
+      
+      if (this.value !== 'custom') {
+        loadAnalytics();
+      }
+    });
+    
+    // Apply custom date range
+    document.getElementById('applyDateRange').addEventListener('click', loadAnalytics);
+    
+    // Refresh analytics data
+    document.getElementById('refreshAnalytics').addEventListener('click', loadAnalytics);
+    
     // Random short ID generation
     function generateID(length = 5) {
       const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -342,6 +558,10 @@
     async function shortenUrl() {
       const longUrl = document.getElementById("longUrl").value.trim();
       const resultDiv = document.getElementById("result");
+      const useCustom = document.getElementById("customToggle").checked;
+      const customDomain = document.getElementById("customDomain").value.trim();
+      const customCode = document.getElementById("customCode").value.trim();
+      const linkTitle = document.getElementById("linkTitle").value.trim();
       
       if (!longUrl) {
         resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ Please enter a valid URL!</div>';
@@ -356,11 +576,42 @@
         return;
       }
       
-      const shortCode = generateID();
+      let shortCode;
+      
+      // Check if using custom code
+      if (useCustom && customCode) {
+        // Validate custom code (alphanumeric and hyphens only)
+        if (!/^[a-zA-Z0-9-]+$/.test(customCode)) {
+          resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ Custom code can only contain letters, numbers, and hyphens!</div>';
+          return;
+        }
+        
+        // Check if custom code is already taken
+        try {
+          const checkResponse = await fetch(`${FIREBASE_URL}/links/${customCode}.json`);
+          const existingData = await checkResponse.json();
+          
+          if (existingData) {
+            resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ This custom code is already taken. Please choose a different one.</div>';
+            return;
+          }
+        } catch (error) {
+          console.error("Error checking custom code:", error);
+          resultDiv.innerHTML = '<div style="color: #dc3545;">⚠️ An error occurred while checking custom code availability.</div>';
+          return;
+        }
+        
+        shortCode = customCode;
+      } else {
+        shortCode = generateID();
+      }
+      
       const data = { 
         longUrl, 
         created: new Date().toISOString(),
-        visits: 0
+        visits: 0,
+        title: linkTitle || null,
+        isCustom: useCustom && customCode ? true : false
       };
       
       try {
@@ -371,7 +622,13 @@
           body: JSON.stringify(data)
         });
         
-        const shortUrl = `${window.location.origin}${window.location.pathname}?c=${shortCode}`;
+        let shortUrl;
+        if (useCustom && customDomain) {
+          shortUrl = `https://${customDomain}/${shortCode}`;
+        } else {
+          shortUrl = `${window.location.origin}${window.location.pathname}?c=${shortCode}`;
+        }
+        
         resultDiv.innerHTML = `
           <div style="color: #28a745;">✅ URL shortened successfully!</div>
           <div style="margin-top: 10px;">
@@ -381,8 +638,13 @@
           <button onclick="copyToClipboard('${shortUrl}')" style="margin-top: 10px; background: #28a745;">Copy URL</button>
         `;
         
-        // Clear input
+        // Clear inputs
         document.getElementById("longUrl").value = '';
+        document.getElementById("customDomain").value = '';
+        document.getElementById("customCode").value = '';
+        document.getElementById("linkTitle").value = '';
+        document.getElementById("customToggle").checked = false;
+        document.getElementById("customSection").style.display = 'none';
         
       } catch (error) {
         console.error("Error shortening URL:", error);
@@ -395,6 +657,48 @@
       navigator.clipboard.writeText(text).then(() => {
         alert("URL copied to clipboard!");
       });
+    }
+    
+    // Get date range based on filter
+    function getDateRange() {
+      const filter = document.getElementById('timeFilter').value;
+      const now = new Date();
+      let startDate, endDate;
+      
+      switch(filter) {
+        case 'today':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+          break;
+        case 'week':
+          const day = now.getDay();
+          const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+          startDate = new Date(now.setDate(diff));
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date();
+          endDate.setHours(23, 59, 59, 999);
+          break;
+        case 'month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+          break;
+        case 'custom':
+          const start = document.getElementById('startDate').value;
+          const end = document.getElementById('endDate').value;
+          if (start && end) {
+            startDate = new Date(start);
+            endDate = new Date(end);
+            endDate.setHours(23, 59, 59, 999);
+          } else {
+            // If no custom dates selected, return all time
+            return { startDate: null, endDate: null };
+          }
+          break;
+        default: // 'all'
+          return { startDate: null, endDate: null };
+      }
+      
+      return { startDate, endDate };
     }
     
     // Analytics loading function
@@ -417,11 +721,15 @@
         const visitsRes = await fetch(`${FIREBASE_URL}/visits.json`);
         const visitsData = await visitsRes.json();
         
+        // Get date range for filtering
+        const { startDate, endDate } = getDateRange();
+        
         // Calculate stats
         const stats = {};
         let totalUrls = 0;
         let totalVisits = 0;
         let maxVisits = 0;
+        let uniqueVisitors = new Set();
         
         if (linksData) {
           totalUrls = Object.keys(linksData).length;
@@ -429,7 +737,9 @@
           for (const code in linksData) {
             stats[code] = {
               longUrl: linksData[code].longUrl,
+              title: linksData[code].title || 'Untitled',
               total: 0,
+              unique: new Set(),
               lastVisit: "N/A"
             };
           }
@@ -438,9 +748,24 @@
         if (visitsData) {
           for (const id in visitsData) {
             const v = visitsData[id];
+            
+            // Filter by date range if specified
+            if (startDate && endDate) {
+              const visitDate = new Date(v.time);
+              if (visitDate < startDate || visitDate > endDate) {
+                continue;
+              }
+            }
+            
             if (stats[v.code]) {
               stats[v.code].total += 1;
               totalVisits += 1;
+              
+              // Track unique visitors
+              if (v.visitorId) {
+                stats[v.code].unique.add(v.visitorId);
+                uniqueVisitors.add(v.visitorId);
+              }
               
               if (stats[v.code].total > maxVisits) {
                 maxVisits = stats[v.code].total;
@@ -457,6 +782,10 @@
         document.getElementById("totalUrls").textContent = totalUrls;
         document.getElementById("totalVisits").textContent = totalVisits;
         document.getElementById("mostVisited").textContent = maxVisits;
+        document.getElementById("uniqueVisitors").textContent = uniqueVisitors.size;
+        
+        // Generate chart data
+        generateVisitsChart(visitsData, startDate, endDate);
         
         // Populate table if we have data
         if (totalUrls > 0) {
@@ -469,8 +798,10 @@
               
             row.innerHTML = `
               <td><strong>${code}</strong></td>
-              <td><a href="${stats[code].longUrl}" target="_blank">${stats[code].longUrl}</a></td>
+              <td><a href="${stats[code].longUrl}" target="_blank">${stats[code].longUrl.substring(0, 50)}...</a></td>
+              <td>${stats[code].title}</td>
               <td>${stats[code].total}</td>
+              <td>${stats[code].unique.size}</td>
               <td>${lastVisit}</td>
             `;
             tbody.appendChild(row);
@@ -495,6 +826,100 @@
       }
     }
     
+    // Generate visits chart
+    function generateVisitsChart(visitsData, startDate, endDate) {
+      const ctx = document.getElementById('visitsChart').getContext('2d');
+      
+      // Destroy existing chart if it exists
+      if (visitsChart) {
+        visitsChart.destroy();
+      }
+      
+      // If no data, show empty chart
+      if (!visitsData) {
+        visitsChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['No data available'],
+            datasets: [{
+              label: 'Visits',
+              data: [0],
+              backgroundColor: 'rgba(0, 102, 255, 0.5)',
+              borderColor: 'rgba(0, 102, 255, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+        return;
+      }
+      
+      // Group visits by date
+      const visitsByDate = {};
+      
+      for (const id in visitsData) {
+        const visit = visitsData[id];
+        const visitDate = new Date(visit.time);
+        
+        // Filter by date range if specified
+        if (startDate && endDate) {
+          if (visitDate < startDate || visitDate > endDate) {
+            continue;
+          }
+        }
+        
+        const dateKey = visitDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        
+        if (!visitsByDate[dateKey]) {
+          visitsByDate[dateKey] = 0;
+        }
+        
+        visitsByDate[dateKey]++;
+      }
+      
+      // Sort dates and get last 15 days
+      const sortedDates = Object.keys(visitsByDate).sort();
+      const recentDates = sortedDates.slice(-15); // Last 15 days
+      
+      const labels = recentDates.map(date => {
+        const d = new Date(date);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      });
+      
+      const data = recentDates.map(date => visitsByDate[date]);
+      
+      visitsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Visits',
+            data: data,
+            backgroundColor: 'rgba(0, 102, 255, 0.5)',
+            borderColor: 'rgba(0, 102, 255, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+    
     // URL redirection handling (for when someone visits a short URL)
     function checkForRedirection() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -512,6 +937,9 @@
         const data = await response.json();
         
         if (data && data.longUrl) {
+          // Generate a simple visitor ID (in a real app, you'd use a more robust method)
+          const visitorId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+          
           // Record the visit
           await fetch(`${FIREBASE_URL}/visits.json`, {
             method: "POST",
@@ -519,7 +947,18 @@
             body: JSON.stringify({
               code: code,
               time: new Date().toISOString(),
-              referrer: document.referrer || "Direct"
+              referrer: document.referrer || "Direct",
+              visitorId: visitorId
+            })
+          });
+          
+          // Update visit count in the link data
+          const updatedVisits = (data.visits || 0) + 1;
+          await fetch(`${FIREBASE_URL}/links/${code}.json`, {
+            method: "PATCH",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+              visits: updatedVisits
             })
           });
           
@@ -555,6 +994,14 @@
           shortenUrl();
         }
       });
+      
+      // Set default dates for custom range
+      const today = new Date();
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(today.getDate() - 7);
+      
+      document.getElementById('startDate').valueAsDate = oneWeekAgo;
+      document.getElementById('endDate').valueAsDate = today;
       
       // Check if we need to redirect (if this is a short URL visit)
       checkForRedirection();
